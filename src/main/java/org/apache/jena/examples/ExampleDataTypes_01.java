@@ -49,6 +49,7 @@ public class ExampleDataTypes_01 {
         model.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
 
         model.write(System.out, "TURTLE");
+        model.write(System.out, "JSON-LD");
     }
     
     private static Resource r ( String localname ) {

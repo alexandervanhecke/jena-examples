@@ -9,7 +9,7 @@
   <name>Apache Jena Examples</name>
 
   <properties>
-    <jena.version>3.0.0</jena.version>
+    <jena.version>3.13.0</jena.version>
     <java-rdfa.version>0.4.2</java-rdfa.version>
     <slf4j.version>1.6.4</slf4j.version>
     <log4j.version>1.2.16</log4j.version>
