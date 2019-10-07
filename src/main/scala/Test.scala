@@ -10,10 +10,13 @@ import org.apache.jena.datatypes.xsd.{XSDDatatype, XSDDateTime}
 import org.apache.jena.query.{Dataset, DatasetFactory}
 import org.apache.jena.rdf.model.{Model, ModelFactory, Resource, ResourceFactory, Statement}
 import org.apache.jena.riot.adapters.RDFWriterRIOT
-import org.apache.jena.riot.writer.RDFJSONWriter
-import org.apache.jena.riot.{Lang, RDFFormat, RDFParser, RIOT}
+import org.apache.jena.riot.system.{PrefixMap, PrefixMapStd}
+import org.apache.jena.riot.writer.{JsonLDWriter, RDFJSONWriter}
+import org.apache.jena.riot.{Lang, RDFFormat, RDFParser, RIOT, WriterDatasetRIOT}
+import org.apache.jena.sparql.core.DatasetGraphFactory
 import org.apache.jena.sparql.util.Context
 import org.apache.jena.vocabulary.VCARD
+import scala.collection.JavaConverters._
 
 object Test extends App {
 
@@ -42,15 +45,21 @@ object Test extends App {
 
   // indien je hier de constructor zonder URI gebruikt dan krijg je een blanko identifier voor het nested type
   // in feite is dat hier beter want een DijkTalud is geen ID, maar een type.
-  val nestedResource = model.createResource("https://wegenenverkeer.data.vlaanderen.be/ns/abstracten#DijkTalud")
+  val nestedResource = model.createResource()
   nestedResource.addProperty(model.createProperty("https://wegenenverkeer.data.vlaanderen.be/ns/abstracten#DijkTalud.helling"), ResourceFactory.createTypedLiteral("500", XSDDatatype.XSDint))
   nestedResource.addProperty(model.createProperty("https://wegenenverkeer.data.vlaanderen.be/ns/abstracten#DijkTalud.notitie"), ResourceFactory.createPlainLiteral("dit is een notitie"))
 
   dijk.addProperty(model.createProperty("https://wegenenverkeer.data.vlaanderen.be/ns/abstracten#Dijk.dijkTalud"), nestedResource)
 
   val jenaCtx = new Context
-  jenaCtx.set(RIOT.JSONLD_CONTEXT, "http://mygreat/json.ld")
-
+  // de string moet quoted zijn.
+  // om echt enkel een @context uit te spuwen moet de JsonLDWriter.JSONLD_CONTEXT_SUBSTITUTION gezet zijn en mag
+  // de RIOT.JSONLD_CONTEXT NIET gezet zijn.
+//  jenaCtx.set(RIOT.JSONLD_CONTEXT, s""""https://wegenenverkeer-test.data.vlaanderen.be/doc/implementatiemodel/master/ontwerpdocument/v27/context/master-otl.jsonld"""")
+  jenaCtx.set(JsonLDWriter.JSONLD_CONTEXT_SUBSTITUTION, s"""["https://wegenenverkeer-test.data.vlaanderen.be/doc/implementatiemodel/master/ontwerpdocument/v27/context/master-otl.jsonld", "https://wegenenverkeer-test.data.vlaanderen.be/doc/implementatiemodel/master/ontwerpdocument/v27/context/master-otl-extra.jsonld"]""")
+  println(s"printen van model met eigen context \n\n\n")
+  val jsonWriter = new JsonLDWriter(RDFFormat.JSONLD_COMPACT_PRETTY)
+  jsonWriter.write(System.out, DatasetGraphFactory.create(model.getGraph), new PrefixMapStd(), "", jenaCtx)
 
     //  val johnSmith: Resource = model.createResource(personURI)
 //  johnSmith.addProperty(VCARD.FN, fullName)
